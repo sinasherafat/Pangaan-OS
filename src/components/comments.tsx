@@ -1,0 +1,3 @@
+import { comments } from "@/lib/seed";
+export function Comments({objectId}:{objectId:string}){const rows=comments.filter(x=>x.objectId===objectId);return <div><h3 className="section-title">Contextual discussion</h3>{rows.length?rows.map(x=><div className="comment" key={x.id}><span className="avatar">{x.author.slice(0,1)}</span><div><strong className="mint">{x.author}</strong><span className="tiny muted"> · {x.at}{x.resolved?" · resolved":""}</span><p>{x.body}</p></div></div>):<p className="tiny muted">No discussion yet.</p>}<input className="input" placeholder="Comment on this object…" aria-label="Add contextual comment"/></div>}
+
