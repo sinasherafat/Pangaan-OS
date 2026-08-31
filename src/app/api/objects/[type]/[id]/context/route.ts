@@ -1,3 +1,2 @@
-import { NextResponse } from "next/server";import { changes,comments,decisions,flows,handbookPages,tasks,versions } from "@/lib/seed";
-export async function GET(_request:Request,{params}:{params:Promise<{type:string;id:string}>}){const {type,id}=await params;const object=type==="decision"?decisions.find(x=>x.id===id):type==="task"?tasks.find(x=>x.id===id):type==="flow"?flows.find(x=>x.id===id):handbookPages.find(x=>x.id===id||x.slug===id);if(!object)return NextResponse.json({error:"Object not found"},{status:404});return NextResponse.json({object,comments:comments.filter(x=>x.objectId===id),versions:versions.filter(x=>"slug" in object&&x.pageSlug===object.slug),changes:changes.filter(x=>x.object===id||x.object===("title" in object?object.title:""))});}
-
+import { NextResponse } from "next/server";import { getWorkspaceContext } from "@/lib/data";
+export async function GET(_request:Request,{params}:{params:Promise<{type:string;id:string}>}){const {type,id}=await params;const context=await getWorkspaceContext(type,id);return context?NextResponse.json(context):NextResponse.json({error:"Object not found"},{status:404});}

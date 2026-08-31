@@ -1,3 +1,2 @@
-import { PageHead } from "@/components/page-head"; import { HandbookView } from "@/components/handbook-view";
-export default async function HandbookPage({params}:{params:Promise<{slug:string}>}){const {slug}=await params;return <><PageHead title="Handbook / Wiki" description="Living documentation with versions, related decisions, and contextual discussion."/><HandbookView slug={slug}/></>}
-
+import { notFound } from "next/navigation";import { PageHead } from "@/components/page-head";import { HandbookView } from "@/components/handbook-view";import { getComments,getHandbookPages,getVersions } from "@/lib/data";
+export default async function HandbookPage({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const [pages,versions,comments]=await Promise.all([getHandbookPages(),getVersions(),getComments("handbook",slug)]);const page=pages.find(item=>item.slug===slug);if(!page)notFound();return <><PageHead title="Handbook / Wiki" description="Living documentation with versions, related decisions, and contextual discussion."/><HandbookView page={page} pages={pages} versions={versions.filter(item=>item.pageSlug===slug)} comments={comments}/></>}

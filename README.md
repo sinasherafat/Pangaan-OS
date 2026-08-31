@@ -16,12 +16,22 @@ Pangaan OS is Pangaan's deliberately minimal internal operating system for canon
 1. Install Node.js 22+ and pnpm.
 2. Run `pnpm install`.
 3. Copy `.env.example` to `.env.local` and supply the Supabase project URL and publishable key.
-4. Apply `supabase/migrations/20260831010000_pangaan_os_foundation.sql`.
+4. Apply the committed migrations in `supabase/migrations/` in filename order.
 5. Create invited users in Supabase Auth, then assign roles through `profiles.role`; only Admin may administer roles after bootstrap.
 6. Apply `supabase/seed.sql` so contextual demo comments can attach to the invited founder profile.
 7. Run `pnpm dev`.
 
-Without Supabase environment variables, the app intentionally starts in read-only preview-data mode. This is only a visual and navigation fallback; mutations and authorization are never simulated client-side.
+Supabase/Postgres is the only runtime source of truth. The app intentionally fails closed when its Supabase environment is unavailable; there is no bundled demo-data fallback.
+
+## Database-backed runtime
+
+All Overview, Handbook, Decisions, Change Log, Tasks, Flows, Search, Versions, contextual discussion, and Team reads use the authenticated Supabase SSR client under RLS. Search projections are maintained by database triggers, and Handbook revisions are appended transactionally before the page's current revision pointer changes.
+
+Seed content exists only in `supabase/seed.sql` and committed data migrations. It is never imported by the application runtime.
+
+## Pre-production security requirement
+
+Supabase leaked-password protection is currently unavailable because the existing project is on the Free plan; Supabase documents this Auth control as a Pro-plan feature. Before Production, upgrade the Supabase organization to Pro or above, enable **Authentication → Password security → Leaked password protection**, and rerun the security advisor. Until then, generated high-entropy QA credentials must remain temporary and local-only.
 
 ## Required environment variables
 

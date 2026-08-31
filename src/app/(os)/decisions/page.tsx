@@ -1,3 +1,2 @@
-import { PageHead } from "@/components/page-head";import { DecisionsView } from "@/components/decisions-view";
-export default function Decisions(){return <><PageHead title="Decision Register" description="Canonical decisions, working proposals, deprecated directions, and open questions."/><DecisionsView/></>}
-
+import { PageHead } from "@/components/page-head";import { DecisionsView } from "@/components/decisions-view";import { getChanges,getDecisions } from "@/lib/data";
+export default async function Decisions(){const [decisions,changes]=await Promise.all([getDecisions(),getChanges()]);return <><PageHead title="Decision Register" description="Canonical decisions, working proposals, deprecated directions, and open questions."/><DecisionsView decisions={decisions} changes={changes}/></>}

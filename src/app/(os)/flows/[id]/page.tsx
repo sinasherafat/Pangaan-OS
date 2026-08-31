@@ -1,3 +1,2 @@
-import { PageHead } from "@/components/page-head";import { FlowsView } from "@/components/flows-view";
-export default async function FlowDetail({params}:{params:Promise<{id:string}>}){const {id}=await params;return <><PageHead title="Flows" description="Edit Mermaid source, preview the sanitized diagram, and save an immutable version."/><FlowsView initialId={id}/></>}
-
+import { notFound } from "next/navigation";import { PageHead } from "@/components/page-head";import { FlowsView } from "@/components/flows-view";import { getComments,getFlows } from "@/lib/data";
+export default async function FlowDetail({params}:{params:Promise<{id:string}>}){const {id}=await params;const [flows,comments]=await Promise.all([getFlows(),getComments("flow")]);if(!flows.some(flow=>flow.id===id))notFound();return <><PageHead title="Flows" description="Edit Mermaid source, preview the sanitized diagram, and save a persisted revision."/><FlowsView key={id} flows={flows} comments={comments} initialId={id}/></>}

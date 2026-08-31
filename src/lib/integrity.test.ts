@@ -1,3 +1,24 @@
-import { describe,expect,it } from "vitest";import { decisions,flows,handbookPages,tasks,versions } from "./seed";
-describe("seed workspace integrity",()=>{it("contains every canonical domain",()=>{expect(handbookPages.map(x=>x.domain)).toEqual(["Master Core","Product Passport","3 Graphs","Context","Architecture","Glossary"])});it("contains all decision states",()=>{expect(new Set(decisions.map(x=>x.status))).toEqual(new Set(["Approved","Working Proposal","Open Question","Deprecated"]))});it("contains all task states and priorities",()=>{expect(new Set(tasks.map(x=>x.status)).size).toBe(4);expect(new Set(tasks.map(x=>x.priority))).toEqual(new Set(["P0","P1","P2"]))});it("keeps tasks traceable",()=>{expect(tasks.every(x=>x.decision&&x.document)).toBe(true)});it("provides Mermaid-first flows",()=>{expect(flows.length).toBeGreaterThanOrEqual(7);expect(flows.every(x=>x.mermaid.startsWith("flowchart"))).toBe(true)});it("provides immutable-looking version records",()=>{expect(versions.every(x=>x.version&&x.summary&&x.content)).toBe(true)})});
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
 
+const root = process.cwd();
+const migration = readFileSync(join(root, "supabase/migrations/20260831020000_runtime_source_of_truth.sql"), "utf8");
+
+describe("database runtime integrity", () => {
+  it("removes the bundled runtime seed source", () => {
+    expect(() => readFileSync(join(root, "src/lib/seed.ts"), "utf8")).toThrow();
+  });
+  it("keeps search synchronized for every persisted object family", () => {
+    for (const family of ["handbook", "decision", "task", "flow", "version", "change", "comment", "glossary"]) expect(migration).toContain(`${family}_search_sync`);
+  });
+  it("saves Handbook revisions transactionally", () => {
+    expect(migration).toContain("function public.save_handbook_revision");
+    expect(migration).toContain("for update");
+    expect(migration).toContain("insert into public.page_versions");
+    expect(migration).toContain("update public.handbook_pages set current_version_id");
+  });
+  it("points runtime search at the Supabase repository", () => {
+    expect(readFileSync(join(root, "src/app/api/search/route.ts"), "utf8")).toContain("@/lib/data");
+  });
+});
