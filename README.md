@@ -16,9 +16,10 @@ Pangaan OS is Pangaan's deliberately minimal internal operating system for canon
 1. Install Node.js 22+ and pnpm.
 2. Run `pnpm install`.
 3. Copy `.env.example` to `.env.local` and supply the Supabase project URL and publishable key.
-4. Apply `supabase/migrations/20260831010000_pangaan_os_foundation.sql` and then `supabase/seed.sql`.
-5. Create invited users in Supabase Auth. Assign roles through `profiles.role`; only Admin may administer roles after bootstrap.
-6. Run `pnpm dev`.
+4. Apply `supabase/migrations/20260831010000_pangaan_os_foundation.sql`.
+5. Create invited users in Supabase Auth, then assign roles through `profiles.role`; only Admin may administer roles after bootstrap.
+6. Apply `supabase/seed.sql` so contextual demo comments can attach to the invited founder profile.
+7. Run `pnpm dev`.
 
 Without Supabase environment variables, the app intentionally starts in read-only preview-data mode. This is only a visual and navigation fallback; mutations and authorization are never simulated client-side.
 
@@ -40,4 +41,3 @@ pnpm build
 ```
 
 This repository must only be deployed as a Vercel Preview until the founder manually approves and merges the pull request.
-

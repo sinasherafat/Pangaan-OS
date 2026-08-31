@@ -114,8 +114,8 @@ returns table(object_type text,object_id text,title text,status text,owner_label
 language sql stable security invoker set search_path='' as $$
  select d.object_type,d.object_id,d.title,d.status,d.owner_label,d.domain,d.route,d.historical,
  ts_headline('english',d.body,websearch_to_tsquery('english',search_query),'MaxWords=24,MinWords=8') as snippet,
- (ts_rank_cd(d.search_vector,websearch_to_tsquery('english',search_query))*10 + similarity(d.title,search_query)*4 + case when lower(d.title)=lower(search_query) then 20 else 0 end + case when d.status in ('Approved','Published') then 1 else 0 end - case when d.historical then .5 else 0 end)::real
- from public.search_documents d where (search_query='' or d.search_vector@@websearch_to_tsquery('english',search_query) or d.title % search_query)
+ (ts_rank_cd(d.search_vector,websearch_to_tsquery('english',search_query))*10 + extensions.similarity(d.title,search_query)*4 + case when lower(d.title)=lower(search_query) then 20 else 0 end + case when d.status in ('Approved','Published') then 1 else 0 end - case when d.historical then .5 else 0 end)::real as rank
+ from public.search_documents d where (search_query='' or d.search_vector@@websearch_to_tsquery('english',search_query) or d.title operator(extensions.%) search_query)
  and (type_filter is null or d.object_type=type_filter) and (status_filter is null or d.status=status_filter)
  and (owner_filter is null or d.owner_label=owner_filter) and (domain_filter is null or d.domain=domain_filter)
  order by rank desc,d.updated_at desc;

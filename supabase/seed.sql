@@ -28,7 +28,14 @@ select p.id,v.version,v.content::jsonb,v.author,v.summary,d.id from (values
 ) as v(slug,version,content,author,summary,decision_code) join pages p using(slug) left join dec d using(decision_code)
 on conflict(page_id,version) do nothing;
 
-update public.handbook_pages p set current_version_id=v.id from lateral(select id from public.page_versions where page_id=p.id order by created_at desc,version desc limit 1)v where p.current_version_id is null;
+update public.handbook_pages p
+set current_version_id=(
+ select v.id from public.page_versions v
+ where v.page_id=p.id
+ order by v.created_at desc,v.version desc
+ limit 1
+)
+where p.current_version_id is null;
 
 insert into public.tasks(task_code,title,owner_label,status,priority,outcome) values
 ('TASK-101','Define Event Schema v1','Data','Backlog','P1',null),('TASK-105','Connector framework','Engineering','Backlog','P1',null),('TASK-108','Search indexing','Engineering','Backlog','P2',null),
@@ -73,5 +80,28 @@ select 'task:'||id,'task',task_code,title,coalesce(outcome,'')||' '||task_code,s
 insert into public.search_documents(id,object_type,object_id,title,body,status,owner_label,domain,route,historical)
 select 'flow:'||id,'flow',flow_code,title,description||' '||mermaid_source,status,owner_label,'Flows','/flows/'||flow_code,false from public.flows on conflict(id) do nothing;
 insert into public.search_documents(id,object_type,object_id,title,body,status,owner_label,domain,route,historical)
-select 'version:'||id,'version',id::text,p.title||' '||v.version,v.change_summary||' '||v.content::text,'Historical',v.author_label,p.domain,'/versions',true from public.page_versions v join public.handbook_pages p on p.id=v.page_id on conflict(id) do nothing;
+select 'version:'||v.id,'version',v.id::text,p.title||' '||v.version,v.change_summary||' '||v.content::text,'Historical',v.author_label,p.domain,'/versions',true from public.page_versions v join public.handbook_pages p on p.id=v.page_id on conflict(id) do nothing;
 
+insert into public.object_links(id,source_type,source_id,target_type,target_id,relation_type) values
+('10000000-0000-4000-8000-000000000001','decision','DEC-128','handbook','master-core','documents'),
+('10000000-0000-4000-8000-000000000002','decision','DEC-126','handbook','product-passport','documents'),
+('10000000-0000-4000-8000-000000000003','task','TASK-102','decision','DEC-126','caused_by'),
+('10000000-0000-4000-8000-000000000004','task','TASK-102','handbook','product-passport','implements'),
+('10000000-0000-4000-8000-000000000005','flow','FLOW-001','decision','DEC-128','implements'),
+('10000000-0000-4000-8000-000000000006','flow','FLOW-002','handbook','product-passport','documents')
+on conflict(id) do nothing;
+
+with author as (
+ select id from public.profiles
+ order by (role='Admin') desc,created_at
+ limit 1
+)
+insert into public.comments(id,object_type,object_id,body,author_id,resolved_at)
+select x.id::uuid,x.object_type,x.object_id,x.body,author.id,x.resolved_at
+from author cross join (values
+('20000000-0000-4000-8000-000000000001','handbook','master-core','Keep protocol framing in the long-term architecture.',null::timestamptz),
+('20000000-0000-4000-8000-000000000002','decision','DEC-128','The updated architecture decision is linked to the Decision Loop.',now()),
+('20000000-0000-4000-8000-000000000003','task','TASK-102','Add one more failure-state test for inventory write-back.',null::timestamptz),
+('20000000-0000-4000-8000-000000000004','flow','FLOW-001','Keep automatic execution out of the MVP.',null::timestamptz)
+) as x(id,object_type,object_id,body,resolved_at)
+on conflict(id) do nothing;
