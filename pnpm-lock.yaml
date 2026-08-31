@@ -15,7 +15,7 @@ importers:
         specifier: 2.112.4
         version: 2.112.4
       geist:
-        specifier: latest
+        specifier: 1.7.2
         version: 1.7.2(next@16.3.3(@babel/core@7.29.7)(@types/node@26.4.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))
       lucide-react:
         specifier: 1.37.0
