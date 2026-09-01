@@ -1,0 +1,2 @@
+import { NextRequest,NextResponse } from "next/server";import { searchWorkspace } from "@/lib/data";import type { ObjectType } from "@/lib/types";
+export async function GET(request:NextRequest){const params=request.nextUrl.searchParams;const q=params.get("q")??"";const type=(params.get("type")??"all") as ObjectType|"all";const results=await searchWorkspace(q,{type,status:params.get("status")??undefined,owner:params.get("owner")??undefined,domain:params.get("domain")??undefined});return NextResponse.json({results});}

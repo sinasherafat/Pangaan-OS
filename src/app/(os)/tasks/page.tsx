@@ -1,0 +1,2 @@
+import { PageHead } from "@/components/page-head";import { TasksView } from "@/components/tasks-view";import { getComments,getTasks } from "@/lib/data";
+export default async function Tasks(){const [tasks,comments]=await Promise.all([getTasks(),getComments("task")]);return <><PageHead title="Tasks" description="A deliberately small execution layer — enough to connect work back to decisions and documentation."/><TasksView tasks={tasks} comments={comments}/></>}
